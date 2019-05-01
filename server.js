@@ -10,10 +10,10 @@ server.use(express.json());
 server.use(helmet());// protects projects always use
 server.use(morgan('dev'))// info on console
 server.use(teamNamer);
-server.use(moodyGateKeeper);
-// server.use(passCode)
+// server.use(moodyGateKeeper);
 
-// costum middleware
+
+// custom middleware
 
 // server.use((req, res, next) => {
 //   res.status(404).send('no time for it')
@@ -21,7 +21,7 @@ server.use(moodyGateKeeper);
 
 
 
-server.use('/api/hubs', hubsRouter);
+server.use('/api/hubs',restricted, hubsRouter); // stick in middleware (restricted), daisy chain affect to intercept the process of calling the router.
 
 server.get('/', (req, res, next) => {
   res.send(`
@@ -30,6 +30,8 @@ server.get('/', (req, res, next) => {
     `);
 });
 
+
+// custom middleware
 function teamNamer(req, res, next) {
   req.team = 'Lambda Students';
   next();
@@ -44,12 +46,15 @@ function moodyGateKeeper(req, res, next) {
   }
 }
 
-// function passCode(req, res, next) {
-//   req.pass = 'you shall not pass';
-//   const time = new Date().toString();
-//   if(time / 3 === 0) {
-//     console.log(req.pass)
-//   }
-// } my version
+function restricted(req, res, next) {
+  const password = req.headers.password;
+  if(password === 'mellon'){
+    next();
+  } else {
+    res.status(401).json({ message: 'Invalid credentials'})
+  }
+}
+
+
 
 module.exports = server;
